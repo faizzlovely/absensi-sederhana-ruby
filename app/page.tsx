@@ -60,7 +60,7 @@ export default function Home() {
           Absensi Siswa
         </h1>
         <p className="text-sm text-gray-600">
-          Kelas 9A — pilih status kehadiran untuk setiap siswa.
+          Kelas 12 Rekayasa Perangkat Lunak — pilih status kehadiran untuk setiap siswa.
         </p>
       </header>
 
