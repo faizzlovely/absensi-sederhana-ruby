@@ -21,9 +21,15 @@ export function useAttendance() {
   useEffect(() => {
     fetch("/api/students")
       .then((res) => res.json())
-      .then((data: Student[]) => {
-        setStudents(data);
-        setRecords(data.map((s) => ({ studentId: s.id, status: null })));
+      .then((data: unknown) => {
+        if (!Array.isArray(data)) {
+          setStudents([]);
+          setRecords([]);
+          return;
+        }
+        const list = data as Student[];
+        setStudents(list);
+        setRecords(list.map((s) => ({ studentId: s.id, status: null })));
       })
       .catch(() => {
         setStudents([]);
@@ -74,17 +80,17 @@ export function useAttendance() {
       body: JSON.stringify({ date, records }),
     });
 
-    const data = await res.json();
+    const data: Record<string, unknown> = await res.json();
 
     if (!res.ok) {
       return {
         success: false,
-        message: data.error || "Gagal menyimpan absensi.",
+        message: (typeof data.error === "string" ? data.error : null) || "Gagal menyimpan absensi.",
         missingCount: 0,
       };
     }
 
-    return { success: true, savedAt: data.savedAt };
+    return { success: true, savedAt: data.savedAt as string };
   }, [records, summary.belumDiabsen]);
 
   return { students, records, setStatus, summary, save, loading };

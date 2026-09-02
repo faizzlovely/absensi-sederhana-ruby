@@ -6,6 +6,7 @@ import { StudentList } from "@/components/StudentList";
 import { SubmitButton } from "@/components/SubmitButton";
 import { SaveConfirmation } from "@/components/SaveConfirmation";
 import { useAttendance } from "@/hooks/useAttendance";
+import type { SaveResult } from "@/hooks/useAttendance";
 
 type Notification = {
   type: "success" | "warning";
@@ -26,13 +27,13 @@ export default function Home() {
     [records]
   );
 
-  const handleSave = useCallback(async () => {
+  const handleSave = useCallback(async (): Promise<void> => {
     if (saveTimerRef.current) {
       clearTimeout(saveTimerRef.current);
     }
 
     setIsSaving(true);
-    const result = await save();
+    const result: SaveResult = await save();
     setIsSaving(false);
 
     if (result.success) {

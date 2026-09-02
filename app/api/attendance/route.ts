@@ -24,7 +24,7 @@ export async function POST(request: Request) {
       for (const record of records) {
         if (record.status === null) continue;
 
-        await conn.execute(
+        await conn.query(
           `INSERT INTO attendance (student_id, status, date)
            VALUES (?, ?, ?)
            ON DUPLICATE KEY UPDATE status = VALUES(status)`,
