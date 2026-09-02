@@ -1,12 +1,9 @@
-import { useCallback, useMemo, useState } from "react";
-import type { AttendanceRecord, AttendanceStatus } from "@/types";
-import { students } from "@/data/students";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import type { AttendanceRecord, AttendanceStatus, Student } from "@/types";
 
 export type SaveResult =
   | { success: true; savedAt: string }
   | { success: false; message: string; missingCount: number };
-
-const STORAGE_PREFIX = "absensi-";
 
 function getTodayKey(): string {
   const now = new Date();
@@ -16,15 +13,24 @@ function getTodayKey(): string {
   return `${year}-${month}-${day}`;
 }
 
-function createEmptyRecords(): AttendanceRecord[] {
-  return students.map((student) => ({
-    studentId: student.id,
-    status: null,
-  }));
-}
-
 export function useAttendance() {
-  const [records, setRecords] = useState<AttendanceRecord[]>(createEmptyRecords);
+  const [students, setStudents] = useState<Student[]>([]);
+  const [records, setRecords] = useState<AttendanceRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/students")
+      .then((res) => res.json())
+      .then((data: Student[]) => {
+        setStudents(data);
+        setRecords(data.map((s) => ({ studentId: s.id, status: null })));
+      })
+      .catch(() => {
+        setStudents([]);
+        setRecords([]);
+      })
+      .finally(() => setLoading(false));
+  }, []);
 
   const setStatus = useCallback((studentId: string, status: AttendanceStatus) => {
     setRecords((current) =>
@@ -50,7 +56,7 @@ export function useAttendance() {
     };
   }, [records]);
 
-  const save = useCallback((): SaveResult => {
+  const save = useCallback(async (): Promise<SaveResult> => {
     const missingCount = summary.belumDiabsen;
 
     if (missingCount > 0) {
@@ -61,14 +67,25 @@ export function useAttendance() {
       };
     }
 
-    const savedAt = new Date().toISOString();
-    const storageKey = `${STORAGE_PREFIX}${getTodayKey()}`;
-    const payload = { records, savedAt };
+    const date = getTodayKey();
+    const res = await fetch("/api/attendance", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ date, records }),
+    });
 
-    localStorage.setItem(storageKey, JSON.stringify(payload));
+    const data = await res.json();
 
-    return { success: true, savedAt };
+    if (!res.ok) {
+      return {
+        success: false,
+        message: data.error || "Gagal menyimpan absensi.",
+        missingCount: 0,
+      };
+    }
+
+    return { success: true, savedAt: data.savedAt };
   }, [records, summary.belumDiabsen]);
 
-  return { records, setStatus, summary, save };
+  return { students, records, setStatus, summary, save, loading };
 }

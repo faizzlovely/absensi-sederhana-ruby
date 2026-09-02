@@ -1,36 +1,91 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Absensi Siswa
 
-## Getting Started
+Aplikasi web absensi siswa untuk guru / wali kelas — kelas 12 Rekayasa Perangkat Lunak.
 
-First, run the development server:
+## Tech Stack
+
+- **Frontend**: Next.js 16 (App Router) + TypeScript + Tailwind CSS v4
+- **Backend**: Next.js API Routes
+- **Database**: MySQL (via `mysql2` driver)
+- **Icons**: lucide-react
+
+## Persiapan
+
+### 1. Install Dependencies
+
+```bash
+npm install
+```
+
+### 2. Setup Database
+
+```bash
+mysql -u root -p < scripts/init-db.sql
+```
+
+### 3. Konfigurasi Environment Variable
+
+Buat file `.env` di root project:
+
+```
+DB_HOST=localhost
+DB_PORT=3306
+DB_USER=root
+DB_PASSWORD=your_password_here
+DB_NAME=absensi
+```
+
+### 4. Jalankan Development Server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Buka http://localhost:3000
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## API Endpoints
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/students` | Ambil semua siswa dari database |
+| POST | `/api/attendance` | Simpan data absensi per tanggal |
 
-## Learn More
+### POST /api/attendance
 
-To learn more about Next.js, take a look at the following resources:
+Request body:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```json
+{
+  "date": "2026-09-02",
+  "records": [
+    { "studentId": "s1", "status": "hadir" },
+    { "studentId": "s2", "status": "tidak_hadir" }
+  ]
+}
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Struktur Project
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+absensi/
+├── app/
+│   ├── api/
+│   │   ├── students/route.ts   → GET /api/students
+│   │   └── attendance/route.ts → POST /api/attendance
+│   ├── globals.css
+│   ├── layout.tsx
+│   └── page.tsx
+├── components/
+│   ├── AttendanceSummary.tsx
+│   ├── SaveConfirmation.tsx
+│   ├── StudentItem.tsx
+│   ├── StudentList.tsx
+│   └── SubmitButton.tsx
+├── data/students.ts              → Fallback data (jika DB belum tersedia)
+├── hooks/useAttendance.ts        → State + logic (fetch dari API)
+├── lib/db.ts                     → MySQL connection pool
+├── scripts/init-db.sql           → Database schema + seed data
+├── types/index.ts                → Tipe data
+├── .env.example                  → Template environment variable
+└── package.json
+```

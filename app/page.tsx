@@ -6,7 +6,6 @@ import { StudentList } from "@/components/StudentList";
 import { SubmitButton } from "@/components/SubmitButton";
 import { SaveConfirmation } from "@/components/SaveConfirmation";
 import { useAttendance } from "@/hooks/useAttendance";
-import { students } from "@/data/students";
 
 type Notification = {
   type: "success" | "warning";
@@ -14,7 +13,7 @@ type Notification = {
 };
 
 export default function Home() {
-  const { records, setStatus, summary, save } = useAttendance();
+  const { students, records, setStatus, summary, save, loading } = useAttendance();
   const [notification, setNotification] = useState<Notification | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -27,13 +26,13 @@ export default function Home() {
     [records]
   );
 
-  const handleSave = useCallback(() => {
+  const handleSave = useCallback(async () => {
     if (saveTimerRef.current) {
       clearTimeout(saveTimerRef.current);
     }
 
     setIsSaving(true);
-    const result = save();
+    const result = await save();
     setIsSaving(false);
 
     if (result.success) {
@@ -52,6 +51,14 @@ export default function Home() {
       setNotification(null);
     }, 5000);
   }, [save]);
+
+  if (loading) {
+    return (
+      <main className="relative z-10 mx-auto flex w-full max-w-5xl flex-1 flex-col items-center justify-center gap-6 px-4 py-6 sm:px-6 sm:py-10">
+        <p className="text-sm text-gray-600">Memuat data siswa...</p>
+      </main>
+    );
+  }
 
   return (
     <main className="relative z-10 mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-4 py-6 sm:px-6 sm:py-10">

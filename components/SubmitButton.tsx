@@ -1,7 +1,7 @@
 import { Save } from "lucide-react";
 
 type SubmitButtonProps = {
-  onSave: () => void;
+  onSave: () => void | Promise<void>;
   isSaving: boolean;
 };
 
