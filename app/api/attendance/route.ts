@@ -25,10 +25,10 @@ export async function POST(request: Request) {
         if (record.status === null) continue;
 
         await conn.query(
-          `INSERT INTO attendance (student_id, status, date)
+          `INSERT INTO attendance (student_id, status, tanggal)
            VALUES (?, ?, ?)
            ON DUPLICATE KEY UPDATE status = VALUES(status)`,
-          [record.studentId, record.status, date]
+          [Number(record.studentId), record.status, date]
         );
       }
 
